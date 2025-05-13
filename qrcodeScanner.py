@@ -1,35 +1,38 @@
 import cv2
 
-# Set up camera object
+# QRCode-Detektor erstellen
+qr_detector = cv2.QRCodeDetector()
+
+# Kamera öffnen (Kamera 0 = Pi Kamera)
 cap = cv2.VideoCapture(0)
 
-# QR code detector
-detector = cv2.QRCodeDetector()
-
-# Track last QR data
-last_data = None
+if not cap.isOpened():
+    print("Kamera nicht gefunden.")
+    exit()
 
 while True:
-    _, img = cap.read()
-    data, bbox, _ = detector.detectAndDecode(img)
+    ret, frame = cap.read()
+    if not ret:
+        break
+
+    # QR-Code erkennen
+    data, bbox, _ = qr_detector.detectAndDecode(frame)
 
     if bbox is not None:
+        # Zeichne Umrandung
         for i in range(len(bbox)):
-            cv2.line(img, tuple(bbox[i][0]), tuple(bbox[(i + 1) % len(bbox)][0]),
-                     color=(255, 0, 0), thickness=2)
-        cv2.putText(img, data, (int(bbox[0][0][0]), int(bbox[0][0][1]) - 10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 250, 120), 2)
+            pt1 = tuple(bbox[i][0])
+            pt2 = tuple(bbox[(i + 1) % len(bbox)][0])
+            cv2.line(frame, pt1, pt2, (255, 0, 0), 2)
 
-        if data and data != last_data:
-            print("data found:", data)
-            last_data = data
-    else:
-        # Reset last_data if no QR code is in view
-        last_data = None
+        if data:
+            print("QR-Code gefunden:", data)
+            cv2.putText(frame, data, (20, 50), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
 
-    cv2.imshow("code detector", img)
+    # Live-Vorschau
+    cv2.imshow("QR-Code Scanner", frame)
 
-    if cv2.waitKey(1) == ord("q"):
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 cap.release()
