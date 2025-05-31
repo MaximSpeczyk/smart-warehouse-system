@@ -13,7 +13,7 @@ char pass[] = SECRET_PASS;
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
 
-const char broker[] = "192.168.161.230";
+const char broker[] = "192.168.63.230";
 int port = 1883;
 const char topicTest[] = "TEST";
 const char topicSlot1[] = "SLOT/1";
