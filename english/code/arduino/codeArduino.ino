@@ -3,9 +3,9 @@
 #include <WiFiNINA.h>
 #include "passwordMaxim.h"
 
-#define green 7
-#define yellow 6
-#define blue 5
+#define green 7   //not connected right now
+#define yellow 6  //not connected right now
+#define blue 5    //not connected right now
 
 char ssid[] = SECRET_SSID;
 char pass[] = SECRET_PASS;
@@ -15,7 +15,7 @@ MqttClient mqttClient(wifiClient);
 
 const char broker[] = "192.168.63.230";
 int port = 1883;
-const char topicTest[] = "TEST";
+const char topicTest[] = "QRCODE";
 const char topicSlot1[] = "SLOT/1";
 const char topicSlot2[] = "SLOT/2";
 const char topicSlot3[] = "SLOT/3";
@@ -25,7 +25,8 @@ LiquidCrystal_I2C lcd_1(0x27, 16, 2);
 String strings[3] = {"", "", ""}; // Start empty
 bool updated = false;
 
-void setup() {
+void setup() 
+{
   pinMode(green, OUTPUT);
   pinMode(yellow, OUTPUT);
   pinMode(blue, OUTPUT);
@@ -40,30 +41,32 @@ void setup() {
   // Connect to WiFi
   Serial.print("Attempting to connect to WPA SSID: ");
   Serial.println(ssid);
-  while (WiFi.begin(ssid, pass) != WL_CONNECTED) {
+  while (WiFi.begin(ssid, pass) != WL_CONNECTED) 
+  {
     Serial.print(".");
     delay(5000);
   }
 
-  Serial.println("You're connected to the network");
+  Serial.println("Connected to Network");
 
   // Connect to MQTT broker
   Serial.print("Attempting to connect to the MQTT broker: ");
   Serial.println(broker);
-  if (!mqttClient.connect(broker, port)) {
+  if (!mqttClient.connect(broker, port)) 
+  {
     Serial.print("MQTT connection failed! Error code = ");
     Serial.println(mqttClient.connectError());
     while (1);
   }
 
-  Serial.println("You're connected to the MQTT broker!");
+  Serial.println("Connected to the MQTT broker");
 
   mqttClient.onMessage(onMqttMessage);
   mqttClient.subscribe(topicTest);
 
   lcd_1.init();
   lcd_1.backlight();
-  Serial.println("Ready");
+  Serial.println("Finished");
 
   lcd_1.setCursor(0, 0);
   lcd_1.print("Slo1  Slo2  Slo3");
@@ -71,13 +74,15 @@ void setup() {
   publishSlots(); // Publish initial (empty) state
 }
 
-void updateLEDs() {
+void updateLEDs() 
+{
   digitalWrite(green, strings[0] != "" ? HIGH : LOW);
   digitalWrite(yellow, strings[1] != "" ? HIGH : LOW);
   digitalWrite(blue, strings[2] != "" ? HIGH : LOW);
 }
 
-void updateLCD() {
+void updateLCD() 
+{
   lcd_1.setCursor(0, 1);
   lcd_1.print("                "); // Clear second row
 
@@ -91,7 +96,8 @@ void updateLCD() {
   lcd_1.print(strings[2]);
 }
 
-void showMessage(const String& message) {
+void showMessage(const String& message) 
+{
   lcd_1.setCursor(0, 0);
   lcd_1.print("                ");  // Clear first row (16 spaces)
   lcd_1.setCursor(0, 0);
@@ -103,7 +109,8 @@ void showMessage(const String& message) {
   lcd_1.print("Slo1  Slo2  Slo3");
 }
 
-void publishSlots() {
+void publishSlots() 
+{
   mqttClient.beginMessage(topicSlot1);
   mqttClient.print(strings[0]);
   mqttClient.endMessage();
@@ -117,9 +124,11 @@ void publishSlots() {
   mqttClient.endMessage();
 }
 
-void onMqttMessage(int messageSize) {
+void onMqttMessage(int messageSize) 
+{
   String message = "";
-  while (mqttClient.available()) {
+  while (mqttClient.available()) 
+  {
     char c = (char)mqttClient.read();
     message += c;
   }
@@ -128,35 +137,50 @@ void onMqttMessage(int messageSize) {
   Serial.println(message);
 
   // Handle deletion commands
-  if (message == "del1") {
+  if (message == "del1") 
+  {
     strings[0] = "";
     updated = true;
-  } else if (message == "del2") {
+  } 
+  else if (message == "del2") 
+  {
     strings[1] = "";
     updated = true;
-  } else if (message == "del3") {
+  } 
+  else if (message == "del3") 
+  {
     strings[2] = "";
     updated = true;
-  } else {
-    if (message.length() > 4) {
+  } 
+  else 
+  {
+    if (message.length() > 4) 
+    {
       message = message.substring(0, 4);
     }
 
     // Check for duplicates
     bool duplicate = false;
-    for (int i = 0; i < 3; i++) {
-      if (strings[i] == message) {
+    for (int i = 0; i < 3; i++) 
+    {
+      if (strings[i] == message) 
+      {
         duplicate = true;
         break;
       }
     }
 
-    if (duplicate) {
+    if (duplicate) 
+    {
       showMessage("Already exists");
-    } else {
+    } 
+    else 
+    {
       bool added = false;
-      for (int i = 0; i < 3; i++) {
-        if (strings[i] == "") {
+      for (int i = 0; i < 3; i++) 
+      {
+        if (strings[i] == "") 
+        {
           strings[i] = message;
           updated = true;
           showMessage("Added to Slot " + String(i + 1));
@@ -165,7 +189,8 @@ void onMqttMessage(int messageSize) {
         }
       }
 
-      if (!added) {
+      if (!added) 
+      {
         showMessage("All slots full");
       }
     }
@@ -176,6 +201,7 @@ void onMqttMessage(int messageSize) {
   publishSlots();
 }
 
-void loop() {
+void loop() 
+{
   mqttClient.poll();  // Needed to receive MQTT messages
 }
