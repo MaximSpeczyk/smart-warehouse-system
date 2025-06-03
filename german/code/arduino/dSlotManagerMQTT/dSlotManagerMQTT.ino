@@ -13,7 +13,7 @@ char pass[] = SECRET_PASS;
 WiFiClient wifiClient;
 MqttClient mqttClient(wifiClient);
 
-const char broker[] = "192.168.63.230";
+const char broker[] = "192.168.63.200";
 int port = 1883;
 const char topicTest[] = "QRCODE";
 const char topicSlot1[] = "SLOT/1";
@@ -172,7 +172,7 @@ void onMqttMessage(int messageSize)
 
     if (duplicate) 
     {
-      showMessage("Bereits vorhanden");
+      showMessage("Schon vorhanden");
     } 
     else 
     {
@@ -183,7 +183,7 @@ void onMqttMessage(int messageSize)
         {
           strings[i] = message;
           updated = true;
-          showMessage("Zu Slot " + String(i + 1) + " hinzugef.");
+          showMessage("Zu Slot " + String(i + 1) + " hinzu.");
           added = true;
           break;
         }
